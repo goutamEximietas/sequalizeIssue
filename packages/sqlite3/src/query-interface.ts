@@ -174,7 +174,7 @@ export class SqliteQueryInterface<
     // Replace double quotes with backticks and ending ')' with constraint snippet
     createTableSql = createTableSql
       .replaceAll('"', '`')
-      .replace(/\);?$/, `, ${constraintSnippet})`);
+      .replace(/\)\s*(STRICT)?;?$/, (_m, strict) => `, ${constraintSnippet})${strict ? ' STRICT' : ''}`);
 
     const fields = await this.describeTable(tableName, options);
     const sql = this.queryGenerator._replaceTableQuery(tableName, fields, createTableSql);
@@ -239,7 +239,10 @@ export class SqliteQueryInterface<
     const sql = this.queryGenerator._replaceTableQuery(
       tableName,
       fields,
-      createTableSql.replaceAll('"', '`').replace(constraintSnippet, ''),
+      createTableSql
+        .replaceAll('"', '`')
+        .replace(constraintSnippet, '')
+        .replace(/\)\s*(STRICT)?;?$/, (_m, strict) => `)${strict ? ' STRICT' : ''}`),
     );
     await this.#internalQueryInterface.executeQueriesSequentially(sql, { ...options, raw: true });
   }
@@ -260,7 +263,7 @@ export class SqliteQueryInterface<
     }
 
     const { sql: createTableSql } = describeCreateTable[0] as { sql: string };
-    const match = /CREATE TABLE (?:`|'|")(\S+)(?:`|'|") \((.+)\)/.exec(createTableSql);
+    const match = /CREATE TABLE (?:`|'|")(\S+)(?:`|'|") \((.+)\)(?: STRICT)?/.exec(createTableSql);
     const data: ConstraintDescription[] = [];
 
     if (match) {

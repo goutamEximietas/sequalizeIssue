@@ -727,4 +727,14 @@ describe('QueryGenerator#createTableQuery', () => {
       );
     });
   });
+
+  it('supports SQLite STRICT tables when strict option is true', () => {
+    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE' }, { strict: true }), {
+      sqlite3: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE) STRICT;',
+      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE);',
+      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE) ENGINE=InnoDB;',
+      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE);`,
+      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE); END`,
+    });
+  });
 });
