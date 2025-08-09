@@ -68,6 +68,10 @@ export interface CreateTableQueryOptions {
    * Used for compound unique keys.
    */
   uniqueKeys?: Array<{ fields: string[] }> | { [indexName: string]: { fields: string[] } };
+  /**
+   * SQLite: emit STRICT tables (requires SQLite 3.37+)
+   */
+  strict?: boolean;
 }
 
 // keep ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
